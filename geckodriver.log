@@ -1,0 +1,151 @@
+1738631324566	geckodriver	INFO	Listening on 127.0.0.1:53414
+1738631461333	geckodriver	INFO	Listening on 127.0.0.1:53479
+1738631462359	mozrunner::runner	INFO	Running command: MOZ_CRASHREPORTER="1" MOZ_CRASHREPORTER_NO_REPORT="1" MOZ_CRASHREPORTER_SHUTDOWN="1" MOZ_NO_REMOTE="1" "/App ... "--marionette" "-foreground" "-no-remote" "-profile" "/var/folders/wt/fb9gvbj93jddjvxb5phw82fw0000gn/T/rust_mozprofileSLFahx"
+console.warn: services.settings: Ignoring preference override of remote settings server
+console.warn: services.settings: Allow by setting MOZ_REMOTE_SETTINGS_DEVTOOLS=1 in the environment
+1738631496395	Marionette	INFO	Marionette enabled
+1738631498542	Marionette	INFO	Listening on port 53509
+Read port: 53509
+1738631498701	RemoteAgent	WARN	TLS certificate errors will be ignored for this session
+1738655811067	geckodriver	INFO	Listening on 127.0.0.1:57024
+1738655812097	mozrunner::runner	INFO	Running command: MOZ_CRASHREPORTER="1" MOZ_CRASHREPORTER_NO_REPORT="1" MOZ_CRASHREPORTER_SHUTDOWN="1" MOZ_NO_REMOTE="1" "/App ... "--marionette" "-foreground" "-no-remote" "-profile" "/var/folders/wt/fb9gvbj93jddjvxb5phw82fw0000gn/T/rust_mozprofileDuknHj"
+console.warn: services.settings: Ignoring preference override of remote settings server
+console.warn: services.settings: Allow by setting MOZ_REMOTE_SETTINGS_DEVTOOLS=1 in the environment
+1738655814076	Marionette	INFO	Marionette enabled
+1738655814737	Marionette	INFO	Listening on port 57032
+Read port: 57032
+1738655814934	RemoteAgent	WARN	TLS certificate errors will be ignored for this session
+1738826335874	geckodriver	INFO	Listening on 127.0.0.1:61983
+1738826336908	mozrunner::runner	INFO	Running command: MOZ_CRASHREPORTER="1" MOZ_CRASHREPORTER_NO_REPORT="1" MOZ_CRASHREPORTER_SHUTDOWN="1" MOZ_NO_REMOTE="1" "/App ... "--marionette" "-foreground" "-no-remote" "-profile" "/var/folders/wt/fb9gvbj93jddjvxb5phw82fw0000gn/T/rust_mozprofileKe0KqN"
+console.warn: services.settings: Ignoring preference override of remote settings server
+console.warn: services.settings: Allow by setting MOZ_REMOTE_SETTINGS_DEVTOOLS=1 in the environment
+1738826339390	Marionette	INFO	Marionette enabled
+1738826340260	Marionette	INFO	Listening on port 61991
+Read port: 61991
+1738826340458	RemoteAgent	WARN	TLS certificate errors will be ignored for this session
+JavaScript error: chrome://browser/content/browser-gestureSupport.js, line 502: TypeError: window.content is null
+JavaScript error: chrome://browser/content/browser-gestureSupport.js, line 524: TypeError: window.content is null
+[GFX1-]: Calling WaitFlushedEvent::Run: is delayed: 2725
+JavaScript warning: https://string-db.org/javascript/ga4.client.code_py9211.js, line 319: Script terminated by timeout at:
+l.Af@https://string-db.org/javascript/ga4.client.code_py9211.js:319:251
+get@https://string-db.org/javascript/ga4.client.code_py9211.js:317:119
+stop@https://string-db.org/javascript/ga4.client.code_py9211.js:317:87
+l.Di/c/<@https://string-db.org/javascript/ga4.client.code_py9211.js:318:49
+
+JavaScript error: , line 0: NotFoundError: Could not move `/var/folders/wt/fb9gvbj93jddjvxb5phw82fw0000gn/T/rust_mozprofileSLFahx/bookmarkbackups/bookmarks-2025-02-06_10_5_3Z7RuKUlYjJx4JJ-vCQT2RctKw88nlxjLoNWaELfw=.jsonlz4' to `/var/folders/wt/fb9gvbj93jddjvxb5phw82fw0000gn/T/rust_mozprofileSLFahx/bookmarkbackups/bookmarks-2025-02-07_10_5_3Z7RuKUlYjJx4JJ-vCQT2RctKw88nlxjLoNWaELfw=.jsonlz4': source file does not exist (NS_ERROR_FILE_NOT_FOUND)
+1739090596362	Marionette	INFO	Stopped listening on port 53509
+console.error: "Failed to fetch https://spocs.getpocket.com/user:" "NetworkError when attempting to fetch resource."
+console.warn: TopSitesFeed: Failed to fetch data from Contile server: NetworkError when attempting to fetch resource.
+console.error: (new AbortError("A request was aborted, for example through a call to IDBTransaction.abort.", (void 0)))
+console.error: "Problem getting stored prefs for TopSites"
+JavaScript error: , line 0: AbortError: A request was aborted, for example through a call to IDBTransaction.abort.
+JavaScript error: , line 0: uncaught exception: null
+JavaScript error: , line 0: uncaught exception: null
+JavaScript error: , line 0: uncaught exception: null
+JavaScript error: chrome://remote/content/marionette/cert.sys.mjs, line 47: NS_ERROR_NOT_AVAILABLE: Component returned failure code: 0x80040111 (NS_ERROR_NOT_AVAILABLE) [nsICertOverrideService.setDisableAllSecurityChecksAndLetAttackersInterceptMyData]
+console.error: ({})
+console.error: ({})
+JavaScript warning: https://string-db.org/javascript/svgmousemove_py9211.js, line 638: Script terminated by timeout at:
+init_network_interactive_functionalities/<@https://string-db.org/javascript/svgmousemove_py9211.js:638:9
+
+1739090599565	Marionette	INFO	Stopped listening on port 57032
+console.error: (new AbortError("A request was aborted, for example through a call to IDBTransaction.abort.", (void 0)))
+JavaScript error: , line 0: AbortError: A request was aborted, for example through a call to IDBTransaction.abort.
+JavaScript error: , line 0: uncaught exception: null
+JavaScript error: , line 0: uncaught exception: null
+JavaScript error: chrome://remote/content/marionette/cert.sys.mjs, line 47: NS_ERROR_NOT_AVAILABLE: Component returned failure code: 0x80040111 (NS_ERROR_NOT_AVAILABLE) [nsICertOverrideService.setDisableAllSecurityChecksAndLetAttackersInterceptMyData]
+1739090602254	Marionette	INFO	Stopped listening on port 61991
+JavaScript error: chrome://remote/content/marionette/cert.sys.mjs, line 47: NS_ERROR_NOT_AVAILABLE: Component returned failure code: 0x80040111 (NS_ERROR_NOT_AVAILABLE) [nsICertOverrideService.setDisableAllSecurityChecksAndLetAttackersInterceptMyData]
+1740470563006	geckodriver	INFO	Listening on 127.0.0.1:49418
+1740470563938	mozrunner::runner	INFO	Running command: MOZ_CRASHREPORTER="1" MOZ_CRASHREPORTER_NO_REPORT="1" MOZ_CRASHREPORTER_SHUTDOWN="1" MOZ_NO_REMOTE="1" "/App ... "--marionette" "-foreground" "-no-remote" "-profile" "/var/folders/wt/fb9gvbj93jddjvxb5phw82fw0000gn/T/rust_mozprofilemTYJia"
+console.warn: services.settings: Ignoring preference override of remote settings server
+console.warn: services.settings: Allow by setting MOZ_REMOTE_SETTINGS_DEVTOOLS=1 in the environment
+1740470570497	Marionette	INFO	Marionette enabled
+1740470571322	Marionette	INFO	Listening on port 49446
+Read port: 49446
+1740470571470	RemoteAgent	WARN	TLS certificate errors will be ignored for this session
+1740691098248	Marionette	INFO	Stopped listening on port 49446
+JavaScript error: chrome://remote/content/marionette/cert.sys.mjs, line 47: NS_ERROR_NOT_AVAILABLE: Component returned failure code: 0x80040111 (NS_ERROR_NOT_AVAILABLE) [nsICertOverrideService.setDisableAllSecurityChecksAndLetAttackersInterceptMyData]
+1741975285595	geckodriver	INFO	Listening on 127.0.0.1:54504
+1741975286555	mozrunner::runner	INFO	Running command: MOZ_CRASHREPORTER="1" MOZ_CRASHREPORTER_NO_REPORT="1" MOZ_CRASHREPORTER_SHUTDOWN="1" MOZ_NO_REMOTE="1" "/App ... "--marionette" "-foreground" "-no-remote" "-profile" "/var/folders/wt/fb9gvbj93jddjvxb5phw82fw0000gn/T/rust_mozprofilesCh6LS"
+console.warn: services.settings: Ignoring preference override of remote settings server
+console.warn: services.settings: Allow by setting MOZ_REMOTE_SETTINGS_DEVTOOLS=1 in the environment
+1741975294211	Marionette	INFO	Marionette enabled
+1741975295690	Marionette	INFO	Listening on port 54519
+Read port: 54519
+1741975295844	RemoteAgent	WARN	TLS certificate errors will be ignored for this session
+JavaScript warning: https://string-db.org/javascript/ga4.client.code_py9214.js, line 317: Script terminated by timeout at:
+get@https://string-db.org/javascript/ga4.client.code_py9214.js:317:115
+stop@https://string-db.org/javascript/ga4.client.code_py9214.js:317:87
+l.Di/c/<@https://string-db.org/javascript/ga4.client.code_py9214.js:318:49
+
+JavaScript warning: https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/orchestrate/chl_api/v1?ray=9206bb8e7e292f7b&lang=auto, line 1: WEBGL_debug_renderer_info is deprecated in Firefox and will be removed. Please use RENDERER.
+JavaScript warning: https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/orchestrate/chl_api/v1?ray=9206bb8e7e292f7b&lang=auto, line 1: Script terminated by timeout at:
+g@https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/orchestrate/chl_api/v1?ray=9206bb8e7e292f7b&lang=auto:1:87747
+
+JavaScript warning: https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/orchestrate/chl_api/v1?ray=9206bbcd89642f7b&lang=auto, line 1: WEBGL_debug_renderer_info is deprecated in Firefox and will be removed. Please use RENDERER.
+JavaScript warning: https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/orchestrate/chl_api/v1?ray=9206bc0e28d32f7b&lang=auto, line 1: WEBGL_debug_renderer_info is deprecated in Firefox and will be removed. Please use RENDERER.
+JavaScript warning: https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/orchestrate/chl_api/v1?ray=9206bc0e28d32f7b&lang=auto, line 1: Script terminated by timeout at:
+eW@https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/orchestrate/chl_api/v1?ray=9206bc0e28d32f7b&lang=auto:1:89180
+
+JavaScript warning: https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/orchestrate/chl_api/v1?ray=9206bc61ff2e2f7b&lang=auto, line 1: WEBGL_debug_renderer_info is deprecated in Firefox and will be removed. Please use RENDERER.
+JavaScript warning: https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/orchestrate/chl_api/v1?ray=9206bc61ff2e2f7b&lang=auto, line 1: Script terminated by timeout at:
+fB/<@https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/orchestrate/chl_api/v1?ray=9206bc61ff2e2f7b&lang=auto:1:72747
+Sqskw@https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/orchestrate/chl_api/v1?ray=9206bc61ff2e2f7b&lang=auto:1:110827
+fz@https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/orchestrate/chl_api/v1?ray=9206bc61ff2e2f7b&lang=auto:1:110901
+fB@https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/orchestrate/chl_api/v1?ray=9206bc61ff2e2f7b&lang=auto:1:72722
+fWFMJ@https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/orchestrate/chl_api/v1?ray=9206bc61ff2e2f7b&lang=auto:1:109417
+fM@https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/orchestrate/chl_api/v1?ray=9206bc61ff2e2f7b&lang=auto:1:110502
+fp@https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/orchestrate/chl_api/v1?ray=9206bc61ff2e2f7b&lang=auto:1:63954
+
+JavaScript warning: https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/orchestrate/chl_api/v1?ray=9206bfc26dfe78d8&lang=auto, line 1: WEBGL_debug_renderer_info is deprecated in Firefox and will be removed. Please use RENDERER.
+1741986675150	geckodriver	INFO	Listening on 127.0.0.1:55503
+1741986676160	mozrunner::runner	INFO	Running command: MOZ_CRASHREPORTER="1" MOZ_CRASHREPORTER_NO_REPORT="1" MOZ_CRASHREPORTER_SHUTDOWN="1" MOZ_NO_REMOTE="1" "/App ... "--marionette" "-foreground" "-no-remote" "-profile" "/var/folders/wt/fb9gvbj93jddjvxb5phw82fw0000gn/T/rust_mozprofiledULCp3"
+JavaScript warning: https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/orchestrate/chl_api/v1?ray=9206c329fb5d0fd9&lang=auto, line 1: WEBGL_debug_renderer_info is deprecated in Firefox and will be removed. Please use RENDERER.
+console.warn: services.settings: Ignoring preference override of remote settings server
+console.warn: services.settings: Allow by setting MOZ_REMOTE_SETTINGS_DEVTOOLS=1 in the environment
+1741986677379	Marionette	INFO	Marionette enabled
+1741986678361	Marionette	INFO	Listening on port 55515
+Read port: 55515
+1741986678590	RemoteAgent	WARN	TLS certificate errors will be ignored for this session
+JavaScript warning: https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/orchestrate/chl_api/v1?ray=9206c692ad1ff0e1&lang=auto, line 1: WEBGL_debug_renderer_info is deprecated in Firefox and will be removed. Please use RENDERER.
+JavaScript warning: https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/orchestrate/chl_api/v1?ray=9206c692ad1ff0e1&lang=auto, line 1: Script terminated by timeout at:
+g4/<@https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/orchestrate/chl_api/v1?ray=9206c692ad1ff0e1&lang=auto:1:84287
+g2@https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/orchestrate/chl_api/v1?ray=9206c692ad1ff0e1&lang=auto:1:79397
+g4@https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/orchestrate/chl_api/v1?ray=9206c692ad1ff0e1&lang=auto:1:84259
+gf@https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/orchestrate/chl_api/v1?ray=9206c692ad1ff0e1&lang=auto:1:94996
+fS@https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/orchestrate/chl_api/v1?ray=9206c692ad1ff0e1&lang=auto:1:92891
+
+JavaScript warning: https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/orchestrate/chl_api/v1?ray=9206c9f94a3508cc&lang=auto, line 1: WEBGL_debug_renderer_info is deprecated in Firefox and will be removed. Please use RENDERER.
+JavaScript warning: https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/orchestrate/chl_api/v1?ray=9206cd5dca355263&lang=auto, line 1: WEBGL_debug_renderer_info is deprecated in Firefox and will be removed. Please use RENDERER.
+JavaScript warning: https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/orchestrate/chl_api/v1?ray=9206d0c98da00faf&lang=auto, line 1: WEBGL_debug_renderer_info is deprecated in Firefox and will be removed. Please use RENDERER.
+JavaScript warning: https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/orchestrate/chl_api/v1?ray=9206d4350d6b2f5d&lang=auto, line 1: WEBGL_debug_renderer_info is deprecated in Firefox and will be removed. Please use RENDERER.
+JavaScript warning: https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/orchestrate/chl_api/v1?ray=9206d79eaa3252fb&lang=auto, line 1: WEBGL_debug_renderer_info is deprecated in Firefox and will be removed. Please use RENDERER.
+JavaScript warning: https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/if/ov2/av0/rcv/3siw3/0x4AAAAAAADnPIDROrmt1Wwj/dark/fbE/new/normal/auto/, line 55: Script terminated by timeout at:
+handler@https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/if/ov2/av0/rcv/3siw3/0x4AAAAAAADnPIDROrmt1Wwj/dark/fbE/new/normal/auto/:55:25
+
+JavaScript warning: https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/orchestrate/chl_api/v1?ray=9206db3d198ef7b9&lang=auto, line 1: WEBGL_debug_renderer_info is deprecated in Firefox and will be removed. Please use RENDERER.
+JavaScript warning: https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/orchestrate/chl_api/v1?ray=9206deadc9782aef&lang=auto, line 1: WEBGL_debug_renderer_info is deprecated in Firefox and will be removed. Please use RENDERER.
+JavaScript warning: https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/orchestrate/chl_api/v1?ray=9206f6150e9f17dc&lang=auto, line 1: WEBGL_debug_renderer_info is deprecated in Firefox and will be removed. Please use RENDERER.
+[GFX1-]: Calling WaitFlushedEvent::Run: is delayed: 6240
+[GFX1-]: Calling WaitFlushedEvent::Run: is delayed: 6216
+JavaScript warning: https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/orchestrate/chl_api/v1?ray=9206f6150e9f17dc&lang=auto, line 1: Script terminated by timeout at:
+fi@https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/orchestrate/chl_api/v1?ray=9206f6150e9f17dc&lang=auto:1:27627
+JFueM@https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/orchestrate/chl_api/v1?ray=9206f6150e9f17dc&lang=auto:1:113052
+fy@https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/orchestrate/chl_api/v1?ray=9206f6150e9f17dc&lang=auto:1:113300
+f@https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/orchestrate/chl_api/v1?ray=9206f6150e9f17dc&lang=auto:1:95463
+
+JavaScript warning: https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/orchestrate/chl_api/v1?ray=92070791fe04fa62&lang=auto, line 1: WEBGL_debug_renderer_info is deprecated in Firefox and will be removed. Please use RENDERER.
+JavaScript warning: https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/orchestrate/chl_api/v1?ray=92070afefe6e171a&lang=auto, line 1: WEBGL_debug_renderer_info is deprecated in Firefox and will be removed. Please use RENDERER.
+JavaScript warning: https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/orchestrate/chl_api/v1?ray=92070e81eb0fed38&lang=auto, line 1: WEBGL_debug_renderer_info is deprecated in Firefox and will be removed. Please use RENDERER.
+JavaScript warning: https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/orchestrate/chl_api/v1?ray=920712261de3faf8&lang=auto, line 1: WEBGL_debug_renderer_info is deprecated in Firefox and will be removed. Please use RENDERER.
+JavaScript warning: https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/orchestrate/chl_api/v1?ray=920715bebffe2314&lang=auto, line 1: WEBGL_debug_renderer_info is deprecated in Firefox and will be removed. Please use RENDERER.
+JavaScript warning: https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/orchestrate/chl_api/v1?ray=9207195dadda67c4&lang=auto, line 1: WEBGL_debug_renderer_info is deprecated in Firefox and will be removed. Please use RENDERER.
+JavaScript warning: https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/orchestrate/chl_api/v1?ray=9207195dadda67c4&lang=auto, line 1: Script terminated by timeout at:
+fy@https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/orchestrate/chl_api/v1?ray=9207195dadda67c4&lang=auto:1:82145
+fp@https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/orchestrate/chl_api/v1?ray=9207195dadda67c4&lang=auto:1:57377
+
+1741991774284	Marionette	INFO	Stopped listening on port 54519
+JavaScript error: chrome://remote/content/marionette/cert.sys.mjs, line 47: NS_ERROR_NOT_AVAILABLE: Component returned failure code: 0x80040111 (NS_ERROR_NOT_AVAILABLE) [nsICertOverrideService.setDisableAllSecurityChecksAndLetAttackersInterceptMyData]
+1741991788486	Marionette	INFO	Stopped listening on port 55515
+JavaScript error: chrome://remote/content/marionette/cert.sys.mjs, line 47: NS_ERROR_NOT_AVAILABLE: Component returned failure code: 0x80040111 (NS_ERROR_NOT_AVAILABLE) [nsICertOverrideService.setDisableAllSecurityChecksAndLetAttackersInterceptMyData]
