@@ -1,11 +1,18 @@
-import os
-import time
+# File:             download_gene_map.py
+# Author:           Akaash Venkat, Audi Liu
+
 from selenium import webdriver
-from selenium.webdriver.firefox.options import Options as FirefoxOptions
-from selenium.webdriver.common.by import By
-from selenium.webdriver.common.action_chains import ActionChains
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver import ActionChains
+from os.path import expanduser
+import glob
+import math
+import os
+import random
+import subprocess
+import sys
+import time
+
+
 
 GENE_DATABASE_FILE = "info_files/gene_database.txt"
 GENE_GROUP_FILE = "info_files/gene_group.txt"
@@ -19,6 +26,8 @@ CHANGED_NAME = {}
 GROUP = {}
 B_D_PAIR = {}
 
+
+
 def readDatabase():
     with open(GENE_DATABASE_FILE) as database_file:
         for line_content in database_file:
@@ -27,7 +36,7 @@ def readDatabase():
                 line_content = line_content.replace(" ", "")
                 line_content = line_content.replace(")", "")
                 line_content = line_content.replace("\n", "")
-                temp_list = line_content.split("-", 1)
+                temp_list = line_content.split("-",1)
                 main_gene = temp_list[0]
                 connecting_genes_list = temp_list[1].split(",")
                 neighbors = {}
@@ -40,6 +49,8 @@ def readDatabase():
                 GENE_LIST.append(gene_info)
     database_file.close()
 
+
+
 def readUnidentifiable():
     with open(UNIDENTIFIABLE_GENE_FILE) as unidentifiable_file:
         for line_content in unidentifiable_file:
@@ -48,6 +59,8 @@ def readUnidentifiable():
             if line_content != "" and "followinggenescannotbefound" not in line_content:
                 UNIDENTIFIABLE_LIST.append(line_content)
     unidentifiable_file.close()
+
+
 
 def readChangedName():
     with open(CHANGED_NAME_GENE_FILE) as changed_name_file:
@@ -60,6 +73,8 @@ def readChangedName():
                 CHANGED_NAME[orig_name] = new_name
     changed_name_file.close()
 
+
+
 def writeToDatabase():
     os.system('rm ' + GENE_DATABASE_FILE)
     os.system('touch ' + GENE_DATABASE_FILE)
@@ -69,11 +84,13 @@ def writeToDatabase():
         main_gene = gene_info[0]
         connecting_genes_list = gene_info[1]
         line_content = main_gene + " - "
-        for key, value in sorted(connecting_genes_list.items()):
+        for key, value in sorted(connecting_genes_list.items() ):
             line_content = line_content + key + "(" + str(value) + "), "
         line_content = line_content[:-2]
         database_file.write(line_content + "\n\n")
     database_file.close()
+
+
 
 def writeGeneGroups():
     os.system('touch ' + GENE_GROUP_FILE)
@@ -96,6 +113,8 @@ def writeGeneGroups():
         grouping_file.write("\n\n\n")
     grouping_file.close()
 
+
+
 def writeIntermediateGenes():
     os.system('touch ' + INTERMEDIATE_GENES_FILE)
     intermediates_file = open(INTERMEDIATE_GENES_FILE, "w")
@@ -108,6 +127,8 @@ def writeIntermediateGenes():
         intermediates_file.close()
     else:
         os.system('rm ' + INTERMEDIATE_GENES_FILE)
+
+
 
 def writeUnidentifiable():
     os.system('touch ' + UNIDENTIFIABLE_GENE_FILE)
@@ -124,6 +145,8 @@ def writeUnidentifiable():
     else:
         os.system('rm ' + UNIDENTIFIABLE_GENE_FILE)
 
+
+
 def writeChangedName():
     os.system('touch ' + CHANGED_NAME_GENE_FILE)
     if not CHANGED_NAME:
@@ -135,10 +158,14 @@ def writeChangedName():
             changed_name_file.write(key + " => " + value + "\n")
         changed_name_file.close()
 
+
+
 def initialize_connections():
     for gene_info in GENE_LIST:
         gene = gene_info[0]
         GROUP[gene] = "C"
+
+
 
 def identifyGroupA(gene_list):
     for i in range(0, len(gene_list)):
@@ -150,6 +177,8 @@ def identifyGroupA(gene_list):
             other_gene = gene_list[j][0]
             if other_gene in gene_neighbors.keys():
                 GROUP[gene] = "A"
+
+
 
 def identifyGroupB(gene_list):
     for i in range(0, len(gene_list)):
@@ -180,6 +209,8 @@ def identifyGroupB(gene_list):
             GROUP[gene] = "B"
             GROUP[best_match[1]] = "D"
             B_D_PAIR[gene] = best_match[1]
+
+
 
 def parseInput():
     os.system('clear')
@@ -239,6 +270,8 @@ def parseInput():
     identifyGroupA(GENE_LIST)
     identifyGroupB(GENE_LIST)
 
+
+
 def getListForGroup(group_id):
     cluster = []
     for gene in GROUP:
@@ -246,26 +279,26 @@ def getListForGroup(group_id):
             cluster.append(gene)
     return cluster
 
+
+
 def find_neighbor(input_gene):
     gene_connectors = {}
-    options = FirefoxOptions()
-    options.binary_location = '/Applications/Firefox.app/Contents/MacOS/firefox'  # Update the path to your Firefox binary
-    driver = webdriver.Firefox(executable_path='/usr/local/bin/geckodriver', options=options)
+    driver = webdriver.Chrome()
     driver.get("http://string-db.org/")
-    driver.find_element(By.ID, "search").click()
-    driver.find_element(By.ID, "primary_input:single_identifier").send_keys(input_gene)
-    driver.find_element(By.ID, "species_text_single_identifier").send_keys("Homo sapiens")
-    driver.find_element(By.XPATH, "//*[@id='input_form_single_identifier']/div[4]/a").click()
+    driver.find_element_by_id("search").click()
+    driver.find_element_by_id("primary_input:single_identifier").send_keys(input_gene)
+    driver.find_element_by_id("species_text_single_identifier").send_keys("Homo sapiens")
+    driver.find_element_by_xpath("//*[@id='input_form_single_identifier']/div[4]/a").click()
     time.sleep(5)
     page_data = driver.page_source
     time.sleep(5)
     if "Sorry, STRING did not find a protein" in page_data:
         return -1
     if "Please select one" in page_data:
-        driver.find_element(By.XPATH, "//*[@id='proceed_form']/div[1]/div/div[2]/a[2]").click()
+        driver.find_element_by_xpath("//*[@id='proceed_form']/div[1]/div/div[2]/a[2]").click()
     time.sleep(15)
-    driver.find_element(By.XPATH, "//*[@id='bottom_page_selector_settings']").click()
-    driver.find_element(By.XPATH, "//*[@id='bottom_page_selector_legend']").click()
+    driver.find_element_by_xpath("//*[@id='bottom_page_selector_settings']").click()
+    driver.find_element_by_xpath("//*[@id='bottom_page_selector_legend']").click()
     time.sleep(5)
     page_data = driver.page_source
     time.sleep(5)
@@ -276,18 +309,18 @@ def find_neighbor(input_gene):
     if input_gene != correct_gene_name:
         return str(correct_gene_name)
     time.sleep(15)
-    driver.find_element(By.XPATH, "//*[@id='bottom_page_selector_table']").click()
-    driver.find_element(By.ID, "bottom_page_selector_settings").click()
-    driver.find_element(By.XPATH, "//*[@id='standard_parameters']/div/div[1]/div[3]/div[2]/div[2]/div[1]/label").click()
-    driver.find_element(By.XPATH, "//select[@name='limit']/option[text()='custom value']").click()
-    driver.find_element(By.ID, "custom_limit_input").clear()
-    driver.find_element(By.ID, "custom_limit_input").send_keys("500")
+    driver.find_element_by_xpath("//*[@id='bottom_page_selector_table']").click()
+    driver.find_element_by_id("bottom_page_selector_settings").click()
+    driver.find_element_by_xpath("//*[@id='standard_parameters']/div/div[1]/div[3]/div[2]/div[2]/div[1]/label").click()
+    driver.find_element_by_xpath("//select[@name='limit']/option[text()='custom value']").click()
+    driver.find_element_by_id("custom_limit_input").clear()
+    driver.find_element_by_id("custom_limit_input").send_keys("500")
     time.sleep(5)
-    driver.find_element(By.XPATH, "//*[@id='standard_parameters']/div/div[1]/div[5]/a").click()
+    driver.find_element_by_xpath("//*[@id='standard_parameters']/div/div[1]/div[5]/a").click()
     time.sleep(20)
-    driver.find_element(By.ID, "bottom_page_selector_table").click()
-    driver.find_element(By.XPATH, "//*[@id='bottom_page_selector_legend']").click()
-    connectors = driver.find_elements(By.CLASS_NAME, "linked_item_row")
+    driver.find_element_by_id("bottom_page_selector_table").click()
+    driver.find_element_by_xpath("//*[@id='bottom_page_selector_legend']").click()
+    connectors = driver.find_elements_by_class_name("linked_item_row")
     time.sleep(5)
     for connector in connectors:
         neighbor = str(connector.text.split(' ')[0].split('\n')[0])
@@ -296,67 +329,66 @@ def find_neighbor(input_gene):
     driver.quit()
     return gene_connectors
 
+
+
 def download_svg(gene_list):
-    options = FirefoxOptions()
-    options.binary_location = '/Applications/Firefox.app/Contents/MacOS/firefox'  # Update the path to your Firefox binary
-    driver = webdriver.Firefox(executable_path='/usr/local/bin/geckodriver', options=options)
 
     if len(gene_list) < 2:
         return -1
 
     SVG_STRING = ""
     for gene in gene_list:
-        SVG_STRING += gene + "\n"
+        SVG_STRING = SVG_STRING + gene + "\n"
 
+    driver = webdriver.Chrome()
     driver.get("http://string-db.org/")
-    wait = WebDriverWait(driver, 20)
-
-    # Click on the search tab
-    search_tab = wait.until(EC.element_to_be_clickable((By.ID, "search")))
-    search_tab.click()
-
-    # Click on the "Multiple proteins" form
-    multiple_proteins_form = wait.until(EC.element_to_be_clickable((By.ID, "multiple_identifiers")))
-    multiple_proteins_form.click()
-
-    # Enter the list of genes
-    gene_input = wait.until(EC.presence_of_element_located((By.ID, "primary_input:multiple_identifiers")))
-    gene_input.send_keys(SVG_STRING)
-
-    # Enter the species
-    species_input = wait.until(EC.presence_of_element_located((By.ID, "species_text_multiple_identifiers")))
-    species_input.clear()
-    species_input.send_keys("Homo sapiens")
-
-    # Click the search button
-    search_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//*[@id='input_form_multiple_identifiers']/div[5]/a")))
-    search_button.click()
-
-    # Wait for the results page to load and display the results
-    wait.until(EC.presence_of_element_located((By.ID, "bottom_page_selector_table"))).click()
-    wait.until(EC.presence_of_element_located((By.ID, "bottom_page_selector_settings"))).click()
-
-    # Adjust settings
-    wait.until(EC.presence_of_element_located((By.ID, "confidence"))).send_keys(" ")
-    wait.until(EC.presence_of_element_located((By.ID, "block_structures"))).send_keys(" ")
-    driver.find_element(By.XPATH, "//*[@id='standard_parameters']/div/div[1]/div[5]/a").click()
-
-    # Wait for the results to update
-    time.sleep(15)
-    driver.find_element(By.XPATH, "//*[@id='bottom_page_selector_legend']").click()
+    driver.find_element_by_id("search").click()
+    driver.find_element_by_id("multiple_identifiers").click()
+    driver.find_element_by_id("primary_input:multiple_identifiers").send_keys(SVG_STRING)
+    driver.find_element_by_id("species_text_multiple_identifiers").send_keys("Homo sapiens")
+    driver.find_element_by_xpath("//*[@id='input_form_multiple_identifiers']/div[5]/a").click()
+    time.sleep(5)
+    page_data = driver.page_source
+    time.sleep(5)
+    if "The following proteins in" in page_data and "appear to match your input" in page_data:
+        driver.find_element_by_xpath("//*[@id='proceed_form']/div[1]/div/div[2]/a[3]").click()
+    time.sleep(20)
+    driver.find_element_by_id("bottom_page_selector_table").click()
+    time.sleep(5)
+    driver.find_element_by_id("bottom_page_selector_settings").click()
+    time.sleep(5)
+    driver.find_element_by_id("confidence").send_keys(" ")
     time.sleep(10)
-    driver.find_element(By.ID, "bottom_page_selector_table").click()
+    driver.find_element_by_id("block_structures").send_keys(" ")
+    time.sleep(10)
+    driver.find_element_by_xpath("//*[@id='standard_parameters']/div/div[1]/div[5]/a").click()
+    time.sleep(15)
+    driver.find_element_by_xpath("//*[@id='bottom_page_selector_legend']").click()
+    time.sleep(10)
+    driver.find_element_by_id("bottom_page_selector_table").click()
     time.sleep(25)
-
-    # Download the SVG
-    element = driver.find_element(By.XPATH, "//*[@id='bottom_page_selector_table_container']/div/div[2]/div/div[3]/div[2]/a")
+    element = driver.find_element_by_xpath("//*[@id='bottom_page_selector_table_container']/div/div[2]/div/div[3]/div[2]/a")
     actions = ActionChains(driver)
     actions.move_to_element(element).click().perform()
     time.sleep(30)
     driver.quit()
 
+
+
+def writeToFile(content, file_name):
+    os.system('touch ' + file_name)
+    os.system('rm ' + file_name)
+    os.system('touch ' + file_name)
+    file = open(file_name, "w")
+    for counter in range(0, len(content)):
+        file.write(str(content[counter]))
+    file.close()
+
+
+
 def main():
-    os.system('mkdir -p info_files')
+
+    os.system('mkdir info_files')
     os.system('touch ' + GENE_DATABASE_FILE)
     os.system('touch ' + UNIDENTIFIABLE_GENE_FILE)
     os.system('touch ' + CHANGED_NAME_GENE_FILE)
@@ -380,6 +412,8 @@ def main():
 
     download_svg(entire_list)
     os.system('mkdir svg_files')
+
+
 
 if __name__ == "__main__":
     main()
