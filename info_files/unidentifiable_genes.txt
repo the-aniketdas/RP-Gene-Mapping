@@ -1,4 +1,15 @@
-The following genes cannot be found on the online STRING database, and will not be used in this program:
-
-TTC8a
-UTY
+PRPF3
+PRPF31
+PRPF4
+PRPF6
+PRPF8
+PRPH2
+RP17
+RP63
+RP22
+RP29
+RP24
+RP34
+RP6
+C2ORF71
+CFAP418

@@ -1,419 +1,190 @@
-# File:             download_gene_map.py
-# Author:           Akaash Venkat, Audi Liu
-
-from selenium import webdriver
-from selenium.webdriver import ActionChains
-from os.path import expanduser
-import glob
-import math
 import os
-import random
-import subprocess
-import sys
-import time
+import csv
+from collections import defaultdict
 
+INPUT_FOLDER = "input_files"
+OUTPUT_FOLDER = "info_files"
 
+EDGE_FILE = os.path.join(INPUT_FOLDER, "string_edges.tsv")
+ANNOTATION_FILE = os.path.join(INPUT_FOLDER, "string_annotations.tsv")
+GENE_LIST_FILE = os.path.join(INPUT_FOLDER, "original_gene_list.txt")
 
-GENE_DATABASE_FILE = "info_files/gene_database.txt"
-GENE_GROUP_FILE = "info_files/gene_group.txt"
-INTERMEDIATE_GENES_FILE = "info_files/intermediate_genes.txt"
-UNIDENTIFIABLE_GENE_FILE = "info_files/unidentifiable_genes.txt"
-CHANGED_NAME_GENE_FILE = "info_files/changed_name_genes.txt"
+def debug_print_columns(path):
+    with open(path, newline='') as f:
+        header = f.readline().strip().split('\t')
+        print(f"[DEBUG] Columns in {path} → {header}")
+    return header
 
-GENE_LIST = []
-UNIDENTIFIABLE_LIST = []
-CHANGED_NAME = {}
-GROUP = {}
-B_D_PAIR = {}
+def load_gene_list():
+    with open(GENE_LIST_FILE) as f:
+        return [line.strip() for line in f if line.strip()]
 
+def load_annotations():
+    annotations = {}
+    with open(ANNOTATION_FILE, newline='') as f:
+        next(f)  # skip header
+        for line in f:
+            parts = line.strip().split('\t')
+            if len(parts) >= 2:
+                gene_symbol = parts[0].strip().upper()
+                protein_id = parts[1].strip()
+                if gene_symbol and protein_id:
+                    annotations[gene_symbol] = protein_id
+    return annotations
 
+def load_edges():
+    edges = {}
+    with open(EDGE_FILE, newline='') as f:
+        reader = csv.DictReader(f, delimiter='\t')
+        for row in reader:
+            a = row["node1_string_id"]
+            b = row["node2_string_id"]
+            try:
+                score = float(row["combined_score"])
+            except ValueError:
+                score = 0.0
+            edges.setdefault(a, []).append((b, score))
+            edges.setdefault(b, []).append((a, score))  # ensure undirected
+    return edges
 
-def readDatabase():
-    with open(GENE_DATABASE_FILE) as database_file:
-        for line_content in database_file:
-            if line_content != "\n":
-                gene_info = []
-                line_content = line_content.replace(" ", "")
-                line_content = line_content.replace(")", "")
-                line_content = line_content.replace("\n", "")
-                temp_list = line_content.split("-",1)
-                main_gene = temp_list[0]
-                connecting_genes_list = temp_list[1].split(",")
-                neighbors = {}
-                for connecting_gene in connecting_genes_list:
-                    name = connecting_gene.split("(")[0]
-                    num = float(connecting_gene.split("(")[1])
-                    neighbors[name] = num
-                gene_info.append(main_gene)
-                gene_info.append(neighbors)
-                GENE_LIST.append(gene_info)
-    database_file.close()
+def normalize_gene_names(gene_list, annotations):
+    normalized = {}
+    unidentifiable = []
 
+    print("\n🔍 Matching gene names...")
+    for gene in gene_list:
+        key = gene.strip().upper()
+        if key in annotations:
+            normalized[gene] = annotations[key]
+        else:
+            print(f"[UNMATCHED] '{gene}' not found in annotations.")
+            unidentifiable.append(gene)
 
+    print(f"\n✅ Matched: {len(normalized)} genes")
+    print(f"❌ Unmatched: {len(unidentifiable)} genes\n")
 
-def readUnidentifiable():
-    with open(UNIDENTIFIABLE_GENE_FILE) as unidentifiable_file:
-        for line_content in unidentifiable_file:
-            line_content = line_content.replace(" ", "")
-            line_content = line_content.replace("\n", "")
-            if line_content != "" and "followinggenescannotbefound" not in line_content:
-                UNIDENTIFIABLE_LIST.append(line_content)
-    unidentifiable_file.close()
+    print("🧾 Sample from annotation gene names:")
+    for idx, g in enumerate(sorted(annotations.keys())):
+        print(f"  {g}")
+        if idx > 10: break
 
+    return normalized, unidentifiable
 
+def classify_genes(normalized_genes, edges, annotations):
+    groups = {}
+    intermediates = set()
+    gene_ids = set(normalized_genes.values())
 
-def readChangedName():
-    with open(CHANGED_NAME_GENE_FILE) as changed_name_file:
-        for line_content in changed_name_file:
-            line_content = line_content.replace(" ", "")
-            line_content = line_content.replace("\n", "")
-            if line_content != "" and "followinggeneshavebeenrenamed" not in line_content:
-                orig_name = line_content.split("=>")[0]
-                new_name = line_content.split("=>")[1]
-                CHANGED_NAME[orig_name] = new_name
-    changed_name_file.close()
-
-
-
-def writeToDatabase():
-    os.system('rm ' + GENE_DATABASE_FILE)
-    os.system('touch ' + GENE_DATABASE_FILE)
-    database_file = open(GENE_DATABASE_FILE, "w")
-    for counter in range(0, len(GENE_LIST)):
-        gene_info = GENE_LIST[counter]
-        main_gene = gene_info[0]
-        connecting_genes_list = gene_info[1]
-        line_content = main_gene + " - "
-        for key, value in sorted(connecting_genes_list.items() ):
-            line_content = line_content + key + "(" + str(value) + "), "
-        line_content = line_content[:-2]
-        database_file.write(line_content + "\n\n")
-    database_file.close()
-
-
-
-def writeGeneGroups():
-    os.system('touch ' + GENE_GROUP_FILE)
-    grouping_file = open(GENE_GROUP_FILE, "w")
-
-    groups = ["A", "B", "C", "D"]
-    descriptions = ["Input gene that has direct connection with another input gene",
-                    "Input gene that is indirectly connected to another input gene, via an intermediate gene",
-                    "Input gene that is not directly or indirectly connected to another input gene",
-                    "Intermediate gene that connects Group B genes with Group A or other Group B genes"]
-
-    for counter in range(0, len(groups)):
-        group_id = groups[counter]
-        description = descriptions[counter]
-        grouping_file.write("Group " + group_id + ": " + description + "\n")
-        grouping_file.write("---\n")
-        cluster = getListForGroup(group_id)
-        for gene in cluster:
-            grouping_file.write(gene + "\n")
-        grouping_file.write("\n\n\n")
-    grouping_file.close()
-
-
-
-def writeIntermediateGenes():
-    os.system('touch ' + INTERMEDIATE_GENES_FILE)
-    intermediates_file = open(INTERMEDIATE_GENES_FILE, "w")
-    if len(B_D_PAIR) != 0:
-        intermediates_file = open(INTERMEDIATE_GENES_FILE, "w")
-        intermediates_file.write("The following pairings (B Genes : D Genes) indicate that the B Gene requires its respective D Gene to serve as an intermediate gene to connect it to the rest of the map of genes:\n\n")
-        sorted_pairs = sorted(B_D_PAIR.items())
-        for b_gene, d_gene in sorted_pairs:
-            intermediates_file.write(b_gene + " : " + d_gene + "\n")
-        intermediates_file.close()
-    else:
-        os.system('rm ' + INTERMEDIATE_GENES_FILE)
-
-
-
-def writeUnidentifiable():
-    os.system('touch ' + UNIDENTIFIABLE_GENE_FILE)
-    cleaned_unidentifiable_list = []
-    for gene in UNIDENTIFIABLE_LIST:
-        if gene not in cleaned_unidentifiable_list:
-            cleaned_unidentifiable_list.append(gene)
-    if len(cleaned_unidentifiable_list) != 0:
-        unidentifiable_file = open(UNIDENTIFIABLE_GENE_FILE, "w")
-        unidentifiable_file.write("The following genes cannot be found on the online STRING database, and will not be used in this program:\n\n")
-        for gene in cleaned_unidentifiable_list:
-            unidentifiable_file.write(gene + "\n")
-        unidentifiable_file.close()
-    else:
-        os.system('rm ' + UNIDENTIFIABLE_GENE_FILE)
-
-
-
-def writeChangedName():
-    os.system('touch ' + CHANGED_NAME_GENE_FILE)
-    if not CHANGED_NAME:
-        os.system('rm ' + CHANGED_NAME_GENE_FILE)
-    else:
-        changed_name_file = open(CHANGED_NAME_GENE_FILE, "w")
-        changed_name_file.write("The following genes have been renamed, as per the online STRING database:\n\n")
-        for key, value in CHANGED_NAME.items():
-            changed_name_file.write(key + " => " + value + "\n")
-        changed_name_file.close()
-
-
-
-def initialize_connections():
-    for gene_info in GENE_LIST:
-        gene = gene_info[0]
-        GROUP[gene] = "C"
-
-
-
-def identifyGroupA(gene_list):
-    for i in range(0, len(gene_list)):
-        gene = gene_list[i][0]
-        gene_neighbors = gene_list[i][1]
-        for j in range(0, len(gene_list)):
-            if i == j:
-                continue
-            other_gene = gene_list[j][0]
-            if other_gene in gene_neighbors.keys():
-                GROUP[gene] = "A"
-
-
-
-def identifyGroupB(gene_list):
-    for i in range(0, len(gene_list)):
-        content_list = []
-        gene = gene_list[i][0]
-        gene_neighbors = gene_list[i][1]
-
-        if GROUP[gene] == "A":
+    print("\n🔍 Classifying genes based on connectivity...")
+    for gene_name, gene_id in normalized_genes.items():
+        if gene_id not in edges:
+            groups[gene_name] = "C"
+            print(f"[C] {gene_name} → no entry in edges")
             continue
 
-        for j in range(0, len(gene_list)):
-            if i == j:
-                continue
+        neighbors = edges[gene_id]
+        direct = [n for n, _ in neighbors if n in gene_ids]
+        if direct:
+            groups[gene_name] = "A"
+            print(f"[A] {gene_name} → directly connected to {len(direct)} other gene(s)")
+        else:
+            found = False
+            for n, _ in neighbors:
+                second_neighbors = edges.get(n, [])
+                for nn, _ in second_neighbors:
+                    if nn in gene_ids:
+                        found = True
+                        groups[gene_name] = "B"
+                        print(f"[B] {gene_name} → indirectly connected via {n}")
+                        intermediates.add(n)
+                        break
+                if found:
+                    break
+            if not found:
+                groups[gene_name] = "C"
+                print(f"[C] {gene_name} → no direct or indirect links")
 
-            other_gene = gene_list[j][0]
-            other_gene_neighbors = gene_list[j][1]
+        # Always record potential intermediates
+        for n, _ in neighbors:
+            second_neighbors = edges.get(n, [])
+            for nn, _ in second_neighbors:
+                if nn in gene_ids and n not in gene_ids:
+                    intermediates.add(n)
 
-            for inter_gene in gene_neighbors.keys():
-                if inter_gene in other_gene_neighbors.keys():
-                    if gene_neighbors[inter_gene] > other_gene_neighbors[inter_gene]:
-                        content_list.append([other_gene_neighbors[inter_gene], inter_gene, other_gene])
-                    else:
-                        content_list.append([gene_neighbors[inter_gene], inter_gene, other_gene])
+    print(f"\n✅ Classification complete: {len(groups)} genes")
+    print(f"🌐 Intermediates identified: {len(intermediates)} nodes")
 
-        best_match = max(content_list)
+    return groups, intermediates
 
-        if GROUP[gene] == "C":
-            GROUP[gene] = "B"
-            GROUP[best_match[1]] = "D"
-            B_D_PAIR[gene] = best_match[1]
+def verify_all_intermediates(normalized, edges, annotations):
+    gene_ids = set(normalized.values())
+    intermediate_candidates = defaultdict(set)
+    id_to_name = {v: k for k, v in annotations.items()}
 
+    print("\n🔎 Verifying all intermediate nodes...")
 
+    for gene_id in gene_ids:
+        neighbors = edges.get(gene_id, [])
+        for neighbor, _ in neighbors:
+            if neighbor not in gene_ids:
+                intermediate_candidates[neighbor].add(gene_id)
 
-def parseInput():
-    os.system('clear')
-    content = []
-    input_genes = []
-    input_list = []
+    true_intermediates = {k: v for k, v in intermediate_candidates.items() if len(v) >= 2}
 
-    with open("input_files/original_gene_list.txt") as arg_input:
-        content = arg_input.readlines()
+    print(f"✅ Found {len(true_intermediates)} intermediates connecting ≥2 genes\n")
 
-    for gene in content:
-        input_list.append(gene.replace(" ", "").replace("\n", ""))
+    for i, (inter_id, connected_genes) in enumerate(true_intermediates.items()):
+        gene_names = [id_to_name.get(gid, gid) for gid in connected_genes]
+        print(f"[INT] {inter_id} connects genes: {gene_names}")
+        if i >= 10:
+            print("... (truncated)")
+            break
 
-    for gene in input_list:
-        if gene not in input_genes:
-            input_genes.append(gene)
+def save_output(groups, intermediates, normalized_genes, unidentifiable, annotations):
+    os.makedirs(OUTPUT_FOLDER, exist_ok=True)
 
-    current_gene_list = GENE_LIST
+    with open(os.path.join(OUTPUT_FOLDER, "gene_group.txt"), "w") as f:
+        for g, c in sorted(groups.items()):
+            f.write(f"{g}\t{c}\n")
 
-    for gene in input_genes:
-        already_present = False
-        for iter in range(0, len(current_gene_list)):
-            existing_gene = current_gene_list[iter][0]
-            if existing_gene == gene:
-                already_present = True
-                break
+    with open(os.path.join(OUTPUT_FOLDER, "intermediate_genes.txt"), "w") as f:
+        for inter in sorted(intermediates):
+            name = [k for k, v in annotations.items() if v == inter]
+            label = name[0] if name else inter
+            f.write(f"{label}\n")
 
-        if already_present == False:
-            if gene in CHANGED_NAME:
-                break
-            if gene in UNIDENTIFIABLE_LIST:
-                break
+    with open(os.path.join(OUTPUT_FOLDER, "changed_name_genes.txt"), "w") as f:
+        for gene, gid in normalized_genes.items():
+            f.write(f"{gene}\t{gid}\n")
 
-            gene_info = []
-            gene_neighbors = find_neighbor(gene)
+    with open(os.path.join(OUTPUT_FOLDER, "unidentifiable_genes.txt"), "w") as f:
+        for gene in unidentifiable:
+            f.write(gene + "\n")
 
-            if gene_neighbors == -1:
-                UNIDENTIFIABLE_LIST.append(gene)
-            else:
-                if isinstance(gene_neighbors, str):
-                    correct_gene = gene_neighbors
-                    CHANGED_NAME[gene] = correct_gene
-                    gene = correct_gene
-                    gene_neighbors = find_neighbor(gene)
-
-                gene_info.append(gene)
-                if "" in gene_neighbors:
-                    time.sleep(1)
-                    gene_info.append(find_neighbor(gene))
-                else:
-                    gene_info.append(gene_neighbors)
-                GENE_LIST.append(gene_info)
-        GENE_LIST.sort()
-        writeToDatabase()
-
-    initialize_connections()
-    identifyGroupA(GENE_LIST)
-    identifyGroupB(GENE_LIST)
-
-
-
-def getListForGroup(group_id):
-    cluster = []
-    for gene in GROUP:
-        if GROUP[gene] == group_id:
-            cluster.append(gene)
-    return cluster
-
-
-
-def find_neighbor(input_gene):
-    gene_connectors = {}
-    driver = webdriver.Chrome()
-    driver.get("http://string-db.org/")
-    driver.find_element_by_id("search").click()
-    driver.find_element_by_id("primary_input:single_identifier").send_keys(input_gene)
-    driver.find_element_by_id("species_text_single_identifier").send_keys("Homo sapiens")
-    driver.find_element_by_xpath("//*[@id='input_form_single_identifier']/div[4]/a").click()
-    time.sleep(5)
-    page_data = driver.page_source
-    time.sleep(5)
-    if "Sorry, STRING did not find a protein" in page_data:
-        return -1
-    if "Please select one" in page_data:
-        driver.find_element_by_xpath("//*[@id='proceed_form']/div[1]/div/div[2]/a[2]").click()
-    time.sleep(15)
-    driver.find_element_by_xpath("//*[@id='bottom_page_selector_settings']").click()
-    driver.find_element_by_xpath("//*[@id='bottom_page_selector_legend']").click()
-    time.sleep(5)
-    page_data = driver.page_source
-    time.sleep(5)
-    split1 = page_data.split("<td class=\"td_name middle_row first_row last_row\" onclick=")
-    split2 = split1[1].split("</td>")
-    split3 = split2[0].split("\">")
-    correct_gene_name = split3[1]
-    if input_gene != correct_gene_name:
-        return str(correct_gene_name)
-    time.sleep(15)
-    driver.find_element_by_xpath("//*[@id='bottom_page_selector_table']").click()
-    driver.find_element_by_id("bottom_page_selector_settings").click()
-    driver.find_element_by_xpath("//*[@id='standard_parameters']/div/div[1]/div[3]/div[2]/div[2]/div[1]/label").click()
-    driver.find_element_by_xpath("//select[@name='limit']/option[text()='custom value']").click()
-    driver.find_element_by_id("custom_limit_input").clear()
-    driver.find_element_by_id("custom_limit_input").send_keys("500")
-    time.sleep(5)
-    driver.find_element_by_xpath("//*[@id='standard_parameters']/div/div[1]/div[5]/a").click()
-    time.sleep(20)
-    driver.find_element_by_id("bottom_page_selector_table").click()
-    driver.find_element_by_xpath("//*[@id='bottom_page_selector_legend']").click()
-    connectors = driver.find_elements_by_class_name("linked_item_row")
-    time.sleep(5)
-    for connector in connectors:
-        neighbor = str(connector.text.split(' ')[0].split('\n')[0])
-        confidence_value = str(connector.text.split(' ')[-1].split('\n')[-1])
-        gene_connectors[neighbor] = float(confidence_value)
-    driver.quit()
-    return gene_connectors
-
-
-
-def download_svg(gene_list):
-
-    if len(gene_list) < 2:
-        return -1
-
-    SVG_STRING = ""
-    for gene in gene_list:
-        SVG_STRING = SVG_STRING + gene + "\n"
-
-    driver = webdriver.Chrome()
-    driver.get("http://string-db.org/")
-    driver.find_element_by_id("search").click()
-    driver.find_element_by_id("multiple_identifiers").click()
-    driver.find_element_by_id("primary_input:multiple_identifiers").send_keys(SVG_STRING)
-    driver.find_element_by_id("species_text_multiple_identifiers").send_keys("Homo sapiens")
-    driver.find_element_by_xpath("//*[@id='input_form_multiple_identifiers']/div[5]/a").click()
-    time.sleep(5)
-    page_data = driver.page_source
-    time.sleep(5)
-    if "The following proteins in" in page_data and "appear to match your input" in page_data:
-        driver.find_element_by_xpath("//*[@id='proceed_form']/div[1]/div/div[2]/a[3]").click()
-    time.sleep(20)
-    driver.find_element_by_id("bottom_page_selector_table").click()
-    time.sleep(5)
-    driver.find_element_by_id("bottom_page_selector_settings").click()
-    time.sleep(5)
-    driver.find_element_by_id("confidence").send_keys(" ")
-    time.sleep(10)
-    driver.find_element_by_id("block_structures").send_keys(" ")
-    time.sleep(10)
-    driver.find_element_by_xpath("//*[@id='standard_parameters']/div/div[1]/div[5]/a").click()
-    time.sleep(15)
-    driver.find_element_by_xpath("//*[@id='bottom_page_selector_legend']").click()
-    time.sleep(10)
-    driver.find_element_by_id("bottom_page_selector_table").click()
-    time.sleep(25)
-    element = driver.find_element_by_xpath("//*[@id='bottom_page_selector_table_container']/div/div[2]/div/div[3]/div[2]/a")
-    actions = ActionChains(driver)
-    actions.move_to_element(element).click().perform()
-    time.sleep(30)
-    driver.quit()
-
-
-
-def writeToFile(content, file_name):
-    os.system('touch ' + file_name)
-    os.system('rm ' + file_name)
-    os.system('touch ' + file_name)
-    file = open(file_name, "w")
-    for counter in range(0, len(content)):
-        file.write(str(content[counter]))
-    file.close()
-
-
-
-def main():
-
-    os.system('mkdir info_files')
-    os.system('touch ' + GENE_DATABASE_FILE)
-    os.system('touch ' + UNIDENTIFIABLE_GENE_FILE)
-    os.system('touch ' + CHANGED_NAME_GENE_FILE)
-
-    readDatabase()
-    readUnidentifiable()
-    readChangedName()
-
-    parseInput()
-
-    writeGeneGroups()
-    writeIntermediateGenes()
-    writeUnidentifiable()
-    writeChangedName()
-
-    entire_list = []
-    entire_list.extend(getListForGroup("A"))
-    entire_list.extend(getListForGroup("B"))
-    entire_list.extend(getListForGroup("C"))
-    entire_list.extend(getListForGroup("D"))
-
-    download_svg(entire_list)
-    os.system('mkdir svg_files')
-
-
+    with open(os.path.join(OUTPUT_FOLDER, "gene_database.txt"), "w") as f:
+        f.write("Name\tSTRING_ID\n")
+        for gene, gid in normalized_genes.items():
+            f.write(f"{gene}\t{gid}\n")
 
 if __name__ == "__main__":
-    main()
+    print("📥 Loading input files...")
+    debug_print_columns(ANNOTATION_FILE)
+    debug_print_columns(EDGE_FILE)
+
+    genes = load_gene_list()
+    annotations = load_annotations()
+    edges = load_edges()
+
+    print("🔎 Normalizing gene names...")
+    normalized, unidentifiable = normalize_gene_names(genes, annotations)
+
+    print("🔗 Classifying gene relationships...")
+    groups, intermediates = classify_genes(normalized, edges, annotations)
+
+    print("🧪 Running full intermediate check...")
+    verify_all_intermediates(normalized, edges, annotations)
+
+    print("💾 Saving output...")
+    save_output(groups, intermediates, normalized, unidentifiable, annotations)
+
+    print("✅ Done.")
