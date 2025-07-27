@@ -1,102 +1,78 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
+from bs4 import BeautifulSoup
 import os
-import xml.etree.ElementTree as ET
-from collections import defaultdict
 
-GENE_GROUP = defaultdict(list)
-GROUP_COLOR = {
-    'A': 'rgb(117,239,168)',
-    'B': 'rgb(239,117,117)',
-    'C': 'rgb(117,117,239)'
+INPUT_SVG = "input_files/0.4-string_map.svg"
+COORDS_FILE = "output_files/layout_coordinates.txt"
+OUTPUT_SVG = "output_files/restructured_gene_map.svg"
+
+# Group color mapping
+GROUP_COLORS = {
+    "A": "#7575ef",  # blue
+    "B": "#FFFF00",  # yellow
+    "D": "#66ff00",  # green
 }
 
-GENE_TO_STRING = {}
-LAYOUT_COORDS = {}
-ANNOTATIONS = {}
-INTERMEDIATE_GENES = set()
+# === Step 1: Load valid gene layout & groups ===
+valid_genes = {}
+with open(COORDS_FILE, "r") as f:
+    next(f)  # skip header
+    for line in f:
+        parts = line.strip().split("\t")
+        if len(parts) >= 4:
+            gene = parts[0].strip().upper()
+            group = parts[3].strip().upper()
+            valid_genes[gene] = group
 
-def readGeneGroups():
-    with open("info_files/gene_group.txt", "r") as file:
-        for line in file:
-            gene, group_id = line.strip().split("\t")
-            if group_id not in GROUP_COLOR:
-                print(f"[WARN] Unknown group '{group_id}' for gene {gene}")
-                GROUP_COLOR[group_id] = 'rgb(180,180,180)'  # fallback color
-            GENE_GROUP[group_id].append(gene)
+print(f"[INFO] Parsed {len(valid_genes)} valid gene group entries.")
 
-def readGeneToString():
-    with open("info_files/changed_name_genes.txt", "r") as file:
-        for line in file:
-            gene, string_id = line.strip().split("\t")
-            GENE_TO_STRING[gene] = string_id
+# === Step 2: Parse SVG ===
+with open(INPUT_SVG, "r", encoding="utf-8") as f:
+    soup = BeautifulSoup(f, "xml")
 
-def readLayoutCoords():
-    with open("output_files/layout_coordinates.txt", "r") as file:
-        header = next(file)
-        for line in file:
-            parts = line.strip().split("\t")
-            if len(parts) < 6:
-                continue
-            gene, string_id, x, y, color, annotation = parts
-            LAYOUT_COORDS[string_id] = {
-                "gene": gene,
-                "x": float(x),
-                "y": float(y),
-                "color": color,
-                "annotation": annotation
-            }
+# Step 2a: Remove or recolor gene nodes
+kept_node_ids = set()
+recolored_count = 0
+removed_nodes = set()
+group_color_counts = {"A": 0, "B": 0, "D": 0}
 
-def readIntermediates():
-    if not os.path.exists("info_files/intermediate_genes.txt"):
-        return
-    with open("info_files/intermediate_genes.txt", "r") as file:
-        for line in file:
-            INTERMEDIATE_GENES.add(line.strip())
+for g in soup.find_all("g", class_="nwnodecontainer"):
+    gene = g.get("data-safe_div_label", "").strip().upper()
+    group = valid_genes.get(gene)
 
-def recolorSVG():
-    tree = ET.parse("input_files/string_map.svg")
-    root = tree.getroot()
-    namespace = {"svg": "http://www.w3.org/2000/svg"}
-    for node in root.findall(".//svg:g", namespace):
-        title = node.find("svg:title", namespace)
-        if title is None:
-            continue
-        string_id = title.text.strip()
-        if string_id not in LAYOUT_COORDS:
-            continue
+    if group and group in GROUP_COLORS:
+        bubble = g.find("circle", class_="nwbubblecoloredcircle")
+        if bubble:
+            bubble["fill"] = GROUP_COLORS[group]
+            recolored_count += 1
+            group_color_counts[group] += 1
+        # Keep this node ID for edge pruning
+        node_id = g.get("id", "")
+        if node_id.startswith("node."):
+            kept_node_ids.add(node_id.split(".")[1])
+    else:
+        g.decompose()
+        removed_nodes.add(gene)
 
-        coord = LAYOUT_COORDS[string_id]
-        color = None
+# === Step 3: Remove edges linked to removed nodes ===
+removed_edges = 0
+for edge in soup.find_all("g", class_="nwlinkwrapper"):
+    edge_id = edge.get("id", "")
+    parts = edge_id.split(".")
+    if len(parts) == 3:
+        source_id, target_id = parts[1], parts[2]
+        if source_id not in kept_node_ids or target_id not in kept_node_ids:
+            edge.decompose()
+            removed_edges += 1
 
-        if string_id in INTERMEDIATE_GENES:
-            color = 'rgb(255,179,0)'  # orange for intermediates
-        else:
-            gene = coord["gene"]
-            for group_id, genes in GENE_GROUP.items():
-                if gene in genes:
-                    color = GROUP_COLOR.get(group_id)
-                    break
+# === Final summary ===
+print(f"[INFO] Recolored {recolored_count} A/B/D nodes.")
+for grp in sorted(group_color_counts):
+    print(f"  → Group {grp}: {group_color_counts[grp]} nodes recolored")
+print(f"[INFO] Removed {len(removed_nodes)} Group C or unknown nodes.")
+print(f"[INFO] Removed {removed_edges} edges linked to missing nodes.")
 
-        if color:
-            for shape in node.findall(".//*", namespace):
-                if 'fill' in shape.attrib:
-                    shape.set('fill', color)
+# === Save updated SVG ===
+with open(OUTPUT_SVG, "w", encoding="utf-8") as f:
+    f.write(str(soup))
 
-    tree.write("output_files/restructured_gene_map.svg")
-    print("✅ SVG recoloring complete: output_files/restructured_gene_map.svg")
-
-def parseInput():
-    print("📥 Loading input files...")
-    readGeneGroups()
-    readGeneToString()
-    readLayoutCoords()
-    readIntermediates()
-
-def main():
-    parseInput()
-    recolorSVG()
-
-if __name__ == "__main__":
-    main()
+print(f"✅ Final cleaned + recolored SVG saved as {OUTPUT_SVG}")

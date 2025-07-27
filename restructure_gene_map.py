@@ -1,92 +1,56 @@
-# -*- coding: utf-8 -*-
-import csv
 import os
+from bs4 import BeautifulSoup
 
-# File paths
-ANNOTATIONS_FILE = "input_files/string_annotations.tsv"
-COORDS_FILE = "input_files/string_coords.tsv"
-CHANGED_NAME_GENES = "info_files/changed_name_genes.txt"
-GENE_GROUP_FILE = "info_files/gene_group.txt"
-INTERMEDIATE_GENES_FILE = "info_files/intermediate_genes.txt"
-OUTPUT_FILE = "output_files/layout_coordinates.txt"
+INPUT_SVG = "input_files/0.4-string_map.svg"
+GENE_GROUP_FILE = "output_files/gene_group.txt"
+OUTPUT_COORDS = "output_files/layout_coordinates.txt"
 
-GENE_TO_STRING = {}
-STRING_COORDS = {}
-GENE_GROUP = {}
-INTERMEDIATES = set()
+# === Step 1: Parse gene groups A, B, D from gene_group.txt ===
+included_genes = {}
+current_group = None
+valid_groups = {"A", "B", "D"}
 
-def loadGeneMappings():
-    with open(CHANGED_NAME_GENES, 'r') as file:
-        for line in file:
-            gene, sid = line.strip().split('\t')
-            GENE_TO_STRING[gene] = sid
-    print(f"[DEBUG] Loaded {len(GENE_TO_STRING)} gene → STRING ID mappings")
+with open(GENE_GROUP_FILE, "r") as f:
+    for line in f:
+        line = line.strip()
+        if not line:
+            continue
+        if line.startswith("Group "):
+            current_group = line.split(":")[0].split()[-1]
+        elif current_group in valid_groups and not line.startswith("---"):
+            included_genes[line.upper()] = current_group
 
-def loadGeneGroups():
-    with open(GENE_GROUP_FILE, 'r') as file:
-        for line in file:
-            gene, group = line.strip().split('\t')
-            GENE_GROUP[gene] = group
-    print(f"[DEBUG] Loaded {len(GENE_GROUP)} gene group labels")
+print(f"[INFO] Loaded {len(included_genes)} genes from groups A/B/D.")
 
-def loadIntermediateGenes():
-    with open(INTERMEDIATE_GENES_FILE, 'r') as file:
-        for line in file:
-            INTERMEDIATES.add(line.strip())
-    print(f"[DEBUG] Loaded {len(INTERMEDIATES)} intermediate nodes")
+# === Step 2: Parse SVG and extract coordinates ===
+with open(INPUT_SVG, "r", encoding="utf-8") as f:
+    soup = BeautifulSoup(f, "xml")
 
-def loadCoordinates():
-    with open(COORDS_FILE, 'r', encoding='utf-8') as file:
-        reader = csv.DictReader(file, delimiter='\t')
-        for row in reader:
-            sid = row['identifier']
-            STRING_COORDS[sid] = {
-                'x': float(row['x_position']),
-                'y': float(row['y_position']),
-                'color': row['color'],
-                'annotation': row['annotation'],
-                'name': row['#node']
-            }
-    print(f"[DEBUG] Parsed {len(STRING_COORDS)} node coordinates")
+nodes = []
+matched = 0
+unmatched = 0
 
-def restructure():
-    os.makedirs(os.path.dirname(OUTPUT_FILE), exist_ok=True)
+for g in soup.find_all("g", class_="nwnodecontainer"):
+    gene = g.get("data-safe_div_label", "").strip().upper()
+    if gene not in included_genes:
+        unmatched += 1
+        continue
 
-    with open(OUTPUT_FILE, 'w', encoding='utf-8') as file:
-        writer = csv.writer(file, delimiter='\t')
-        writer.writerow(['#node', 'identifier', 'x_position', 'y_position', 'color', 'annotation'])
+    x = float(g.get("data-x_pos", 0))
+    y = float(g.get("data-y_pos", 0))
+    text = g.find_all("text")
+    annotation = text[-1].text.strip() if text else ""
+    group = included_genes[gene]
+    nodes.append((gene, x, y, group, annotation))
+    matched += 1
 
-        count = 0
-        for gene, group in GENE_GROUP.items():
-            sid = GENE_TO_STRING.get(gene)
-            if sid and sid in STRING_COORDS:
-                coord = STRING_COORDS[sid]
-                writer.writerow([
-                    gene, sid, coord['x'], coord['y'],
-                    coord['color'], coord['annotation']
-                ])
-                count += 1
-            else:
-                print(f"[WARN] Missing mapping or coords for gene {gene}")
+print(f"[INFO] Matched {matched} gene nodes with coordinates.")
+print(f"[WARN] {unmatched} genes in SVG not in groups A/B/D")
 
-        for sid in INTERMEDIATES:
-            if sid in STRING_COORDS:
-                coord = STRING_COORDS[sid]
-                writer.writerow([
-                    coord['name'], sid, coord['x'], coord['y'],
-                    coord['color'], coord['annotation']
-                ])
-                count += 1
-            else:
-                print(f"[WARN] Intermediate STRING ID {sid} missing from coordinates")
+# === Step 3: Write to layout_coordinates.txt ===
+with open(OUTPUT_COORDS, "w") as f:
+    f.write("name\tx\ty\tgroup\tannotation\n")
+    for gene, x, y, group, annotation in nodes:
+        f.write(f"{gene}\t{x}\t{y}\t{group}\t{annotation}\n")
 
-    print(f"[INFO] Wrote {count} entries to {OUTPUT_FILE}")
-
-if __name__ == "__main__":
-    print("📥 Loading input files...")
-    loadGeneMappings()
-    loadGeneGroups()
-    loadIntermediateGenes()
-    loadCoordinates()
-    restructure()
-    print("✅ Done.")
+print(f"✅ Wrote {len(nodes)} nodes to {OUTPUT_COORDS}")
